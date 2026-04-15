@@ -1,0 +1,11 @@
+{
+  "name": "proxy-youvideo",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "cors-anywhere": "^0.4.4"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
