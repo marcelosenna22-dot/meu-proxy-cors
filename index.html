@@ -1,69 +1,477 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="description" content="Affordable and professional web design">
-	  <meta name="keywords" content="web design, affordable web design, professional web design">
-  	<meta name="author" content="Brad Traversy">
-    <title>Acme Web Deisgn | Welcome</title>
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="icon" href="img/favicon.png">
-  </head>
-  <body>
-    <header>
-      <div class="container">
-        <div id="branding">
-          <h1><span class="highlight">Acme</span> Web Design</h1>
-        </div>
-        <nav>
-          <ul>
-            <li class="current"><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="services.html">Services</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SennaTV Smart — IPTV Player</title>
+<style>
+:root{--bg:#070a10;--panel:#10151f;--panel2:#171e2a;--line:#273142;--text:#f4f7fb;--muted:#9aa7b8;--accent:#1687ff;--accent2:#35b7ff;--danger:#ff5252}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}.app{min-height:100vh}.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#13243b 0,#070a10 55%)}
+.login-card{width:min(460px,100%);background:rgba(16,21,31,.96);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 20px 70px #0008}
+.logo{font-size:30px;font-weight:800;letter-spacing:.5px}.logo span{color:var(--accent2)}
+.sub{color:var(--muted);margin:8px 0 24px}.field{margin:14px 0}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}
+input,select{width:100%;background:#0b1018;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primary{width:100%;border:0;border-radius:10px;padding:13px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:white;font-weight:700;margin-top:8px}
+.status{font-size:13px;margin-top:12px;color:var(--muted);min-height:18px}.status.error{color:#ff7676}.status.ok{color:#62e6a0}
+.note{font-size:11px;color:#748196;line-height:1.5;margin-top:18px}
+.topbar{height:64px;background:#0b1018;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:18px;position:sticky;top:0;z-index:20}
+.brand{font-weight:800;font-size:20px;white-space:nowrap}.brand span{color:var(--accent2)}
+.nav{display:flex;gap:5px;overflow:auto}.nav button{border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:8px;white-space:nowrap}.nav button.active,.nav button:hover{background:var(--panel2);color:white}
+.account{margin-left:auto;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:10px}.logout{background:#1a202b;border:1px solid var(--line);color:#ddd;border-radius:8px;padding:7px 10px}
+.main{padding:18px;max-width:1600px;margin:auto}.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:15px}.toolbar input{max-width:360px}.toolbar select{max-width:280px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:145px;transition:transform .15s ease, border-color .15s ease;cursor:pointer}
+.card:hover{transform:translateY(-2px);border-color:#3d4d65}
+.thumb{height:95px;background:#0b1018;display:grid;place-items:center}.thumb img{width:100%;height:100%;object-fit:contain}.placeholder{font-size:30px;color:#66758a}.card-body{padding:9px}.name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:11px;color:var(--muted);margin-top:4px}
+.empty{padding:40px;text-align:center;color:var(--muted);grid-column:1/-1}.loading{text-align:center;padding:40px;color:var(--muted)}
+.player{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}.player-head{height:58px;background:#090d14;display:flex;align-items:center;padding:0 14px;gap:12px}.back{background:#1a202b;color:white;border:0;border-radius:8px;padding:8px 12px}.player-title{font-weight:700}.video-wrap{flex:1;display:grid;place-items:center;position:relative}.video-wrap video{width:100%;height:100%;object-fit:contain;background:#000}.player-info{position:absolute;left:14px;bottom:14px;background:#000b;padding:10px 12px;border-radius:8px;font-size:12px;color:#ddd}
+.modal{position:fixed;inset:0;background:#000b;z-index:60;display:grid;place-items:center;padding:18px}.modal-box{width:min(650px,100%);max-height:85vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px}.modal-head{display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#202735;color:white;border-radius:8px;padding:7px 10px}.epg{margin-top:14px}.epg-item{padding:12px;border-bottom:1px solid var(--line)}.epg-item.now{border-left:3px solid var(--accent);background:#151d28}.epg-time{font-size:11px;color:var(--accent2)}.epg-title{font-weight:700;margin-top:3px}.epg-desc{font-size:12px;color:var(--muted);margin-top:5px}
+.series-seasons{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.season{background:#202735;color:#fff;border:0;padding:8px 11px;border-radius:8px}.season.active{background:var(--accent)}
+.toast{position:fixed;right:18px;bottom:18px;z-index:100;background:#161e29;border:1px solid var(--line);padding:12px 15px;border-radius:9px;max-width:360px;font-size:13px;display:none}
 
-    <section id="showcase">
-      <div class="container">
-        <h1>Affordable Professional Web Design</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu luctus ipsum, rhoncus semper magna. Nulla nec magna sit amet sem interdum condimentum.</p>
-      </div>
-    </section>
+/* Estilos de FOCO para suporte ao Controle Remoto (DPAD) */
+button:focus, input:focus, select:focus, .card:focus, .season:focus, .close:focus, .back:focus {
+  outline: 3px solid var(--accent2) !important;
+  outline-offset: 2px;
+  transform: scale(1.04);
+  z-index: 10;
+  border-color: var(--accent2) !important;
+}
+.card:focus .name {
+  color: var(--accent2);
+}
+*:focus:not(:focus-visible) {
+  outline: none;
+}
 
-    <section id="newsletter">
-      <div class="container">
-        <h1>Subscribe To Our Newsletter</h1>
-        <form>
-          <input type="email" placeholder="Enter Email..." required>
-          <button type="submit" class="button_1">Subscribe</button>
-        </form>
-      </div>
-    </section>
+@media(max-width:700px){.topbar{height:auto;min-height:60px;flex-wrap:wrap;padding:10px}.nav{order:3;width:100%}.account{margin-left:auto}.main{padding:12px}.grid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}.toolbar{flex-wrap:wrap}.toolbar input,.toolbar select{max-width:none}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
 
-    <section id="boxes">
-      <div class="container">
-        <div class="box">
-          <img src="./img/logo_html.png">
-          <h3>HTML5 Markup</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-        <div class="box">
-          <img src="./img/logo_css.png">
-          <h3>CSS3 Styling</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-        <div class="box">
-          <img src="./img/logo_brush.png">
-          <h3>Graphic Design</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-      </div>
-    </section>
+<div id="loginScreen" class="login">
+  <div class="login-card">
+    <div class="logo">Senna<span>TV</span> Smart</div>
+    <div class="sub">Player IPTV — login Xtream Codes</div>
 
-    <footer>
-      <p>Acme Web Deisgn, Copyright &copy; 2019</p>
-    </footer>
-  </body>
-</html>
+    <div class="field">
+      <label>Servidor / DNS</label>
+      <select id="server" tabindex="0">
+        <option value="http://epic82.xyz">epic82.xyz</option>
+        <option value="http://epic8273.world">epic8273.world</option>
+        <option value="http://epic82.online">epic82.online</option>
+        <option value="http://epicplay.app">epicplay.app</option>
+        <option value="http://epic82.space">epic82.space</option>
+        <option value="http://epic8273.lat">epic8273.lat</option>
+        <option value="http://epic82.lol">epic82.lol</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Usuário</label>
+      <input id="username" autocomplete="username" placeholder="Digite o usuário" tabindex="0">
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Digite a senha" tabindex="0">
+    </div>
+
+    <button id="loginBtn" class="primary" tabindex="0">ENTRAR</button>
+    <div id="loginStatus" class="status"></div>
+    <div class="note">
+      Use somente uma conta e um servidor para os quais você tenha autorização de acesso.
+      O aplicativo não inclui credenciais fixas.
+    </div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden app">
+  <header class="topbar">
+    <div class="brand">Senna<span>TV</span></div>
+    <nav class="nav">
+      <button data-page="live" class="active" tabindex="0">📺 TV ao vivo</button>
+      <button data-page="movies" tabindex="0">🎬 Filmes</button>
+      <button data-page="series" tabindex="0">📚 Séries</button>
+    </nav>
+    <div class="account"><span id="accountName"></span><button id="logoutBtn" class="logout" tabindex="0">Sair</button></div>
+  </header>
+
+  <main class="main">
+    <div class="toolbar">
+      <input id="search" placeholder="🔎 Pesquisar..." autocomplete="off" tabindex="0">
+      <select id="category" tabindex="0"><option value="">Todas as categorias</option></select>
+      <button id="refreshBtn" class="logout" tabindex="0">↻ Atualizar</button>
+    </div>
+    <section id="content" class="grid"></section>
+  </main>
+</div>
+
+<div id="player" class="player hidden">
+  <div class="player-head">
+    <button id="closePlayer" class="back" tabindex="0">← Voltar</button>
+    <div id="playerTitle" class="player-title">Reprodutor</div>
+  </div>
+  <div class="video-wrap">
+    <video id="video" controls playsinline autoplay></video>
+    <div id="playerInfo" class="player-info"></div>
+  </div>
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modalTitle">EPG</h3>
+      <button id="closeModal" class="close" tabindex="0">Fechar</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/*
+  SennaTV Smart — Suporte a TV Box & Prevenção de Trava
+*/
+
+const state = {
+  server: "",
+  username: "",
+  password: "",
+  page: "live",
+  liveCategories: [],
+  movieCategories: [],
+  seriesCategories: [],
+  live: [],
+  movies: [],
+  series: [],
+  hls: null,
+  limit: 60
+};
+
+const $ = id => document.getElementById(id);
+
+function escapeHtml(v=""){
+  return String(v).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function toast(msg){
+  $("toast").textContent = msg;
+  $("toast").style.display = "block";
+  clearTimeout(window.__toast);
+  window.__toast = setTimeout(() => $("toast").style.display="none", 3200);
+}
+
+function setStatus(msg, type=""){
+  $("loginStatus").textContent = msg;
+  $("loginStatus").className = "status " + type;
+}
+
+function apiUrl(params={}){
+  const u = new URL(state.server.replace(/\/+$/,"") + "/player_api.php");
+  u.searchParams.set("username", state.username);
+  u.searchParams.set("password", state.password);
+  Object.entries(params).forEach(([k,v]) => {
+    if(v !== undefined && v !== null && v !== "") u.searchParams.set(k,v);
+  });
+  return u.toString();
+}
+
+async function api(params={}){
+  const response = await fetch(apiUrl(params), {method:"GET"});
+  if(!response.ok) throw new Error("HTTP " + response.status);
+  const text = await response.text();
+  try { return JSON.parse(text); }
+  catch { throw new Error("O servidor não retornou JSON válido."); }
+}
+
+function normalizeServer(v){
+  v = v.trim();
+  if(!/^https?:\/\//i.test(v)) v = "http://" + v;
+  return v.replace(/\/+$/,"");
+}
+
+async function login(){
+  const server = normalizeServer($("server").value);
+  const username = $("username").value.trim();
+  const password = $("password").value;
+
+  if(!username || !password){
+    setStatus("Informe usuário e senha.", "error");
+    return;
+  }
+
+  state.server = server;
+  state.username = username;
+  state.password = password;
+  $("loginBtn").disabled = true;
+  setStatus("Conectando ao servidor...");
+
+  try{
+    const data = await api();
+    const info = data.user_info || {};
+    if(String(info.auth) !== "1"){
+      throw new Error(info.message || "Usuário ou senha inválidos.");
+    }
+
+    $("accountName").textContent = info.username || username;
+    $("loginScreen").classList.add("hidden");
+    $("appScreen").classList.remove("hidden");
+
+    await loadPage("live");
+    setStatus("");
+  }catch(err){
+    console.error(err);
+    setStatus("Não foi possível conectar: " + err.message, "error");
+  }finally{
+    $("loginBtn").disabled = false;
+  }
+}
+
+async function loadPage(page){
+  state.page = page;
+  state.limit = 60;
+  document.querySelectorAll(".nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.page === page)
+  );
+
+  $("category").innerHTML = '<option value="">Todas as categorias</option>';
+  $("search").value = "";
+  $("content").innerHTML = '<div class="loading">Carregando dados do servidor...</div>';
+
+  try{
+    if(page === "live"){
+      if(!state.liveCategories.length)
+        state.liveCategories = await api({action:"get_live_categories"});
+      if(!state.live.length)
+        state.live = await api({action:"get_live_streams"});
+      fillCategories(state.liveCategories);
+      renderLive();
+    }else if(page === "movies"){
+      if(!state.movieCategories.length)
+        state.movieCategories = await api({action:"get_vod_categories"});
+      if(!state.movies.length)
+        state.movies = await api({action:"get_vod_streams"});
+      fillCategories(state.movieCategories);
+      renderMovies();
+    }else{
+      if(!state.seriesCategories.length)
+        state.seriesCategories = await api({action:"get_series_categories"});
+      if(!state.series.length)
+        state.series = await api({action:"get_series"});
+      fillCategories(state.seriesCategories);
+      renderSeries();
+    }
+  }catch(err){
+    console.error(err);
+    $("content").innerHTML = `<div class="empty">Erro ao carregar dados.<br><small>${escapeHtml(err.message)}</small></div>`;
+  }
+}
+
+function fillCategories(cats){
+  cats = Array.isArray(cats) ? cats : [];
+  $("category").innerHTML = '<option value="">Todas as categorias</option>' +
+    cats.map(c => `<option value="${escapeHtml(c.category_id)}">${escapeHtml(c.category_name)}</option>`).join("");
+}
+
+function filterItems(items){
+  const q = $("search").value.toLowerCase().trim();
+  const cat = $("category").value;
+  return (Array.isArray(items)?items:[]).filter(x => {
+    const name = String(x.name || "").toLowerCase();
+    return (!q || name.includes(q)) && (!cat || String(x.category_id) === String(cat));
+  });
+}
+
+function cardImage(url, fallback="📺"){
+  if(!url) return `<div class="placeholder">${fallback}</div>`;
+  return `<img src="${escapeHtml(url)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>${fallback}</div>'">`;
+}
+
+function loadMoreButtonHtml(totalCount){
+  if(totalCount <= state.limit) return "";
+  return `<div style="grid-column: 1/-1; text-align: center; margin: 20px 0;">
+            <button id="loadMoreBtn" class="primary" tabindex="0" style="max-width: 200px;">
+              Carregar Mais (${state.limit} de ${totalCount})
+            </button>
+          </div>`;
+}
+
+function bindLoadMore(renderFn){
+  const btn = $("loadMoreBtn");
+  if(btn){
+    btn.onclick = () => {
+      state.limit += 60;
+      renderFn();
+    };
+    btn.onkeydown = (e) => {
+      if(e.key === "Enter" || e.keyCode === 13){
+        e.preventDefault();
+        state.limit += 60;
+        renderFn();
+      }
+    };
+  }
+}
+
+function bindCardEvents(type, callback){
+  document.querySelectorAll(`.card[data-type="${type}"]`).forEach(el => {
+    el.onclick = () => callback(el.dataset.id);
+    el.onkeydown = (e) => {
+      if(e.key === "Enter" || e.keyCode === 13){
+        e.preventDefault();
+        callback(el.dataset.id);
+      }
+    };
+  });
+}
+
+function renderLive(){
+  const filtered = filterItems(state.live);
+  const items = filtered.slice(0, state.limit);
+  
+  $("content").innerHTML = items.length ? items.map(x => `
+    <article class="card" tabindex="0" data-id="${escapeHtml(x.stream_id)}" data-type="live">
+      <div class="thumb">${cardImage(x.stream_icon,"📺")}</div>
+      <div class="card-body">
+        <div class="name">${escapeHtml(x.name)}</div>
+        <div class="meta">▶ Assistir • ${x.epg_channel_id ? "EPG disponível" : "Sem EPG"}</div>
+      </div>
+    </article>`).join("") + loadMoreButtonHtml(filtered.length) : '<div class="empty">Nenhum canal encontrado.</div>';
+
+  bindCardEvents('live', playLive);
+  bindLoadMore(renderLive);
+}
+
+function renderMovies(){
+  const filtered = filterItems(state.movies);
+  const items = filtered.slice(0, state.limit);
+
+  $("content").innerHTML = items.length ? items.map(x => `
+    <article class="card" tabindex="0" data-id="${escapeHtml(x.stream_id)}" data-type="movie">
+      <div class="thumb">${cardImage(x.stream_icon,"🎬")}</div>
+      <div class="card-body">
+        <div class="name">${escapeHtml(x.name)}</div>
+        <div class="meta">🎬 Filme</div>
+      </div>
+    </article>`).join("") + loadMoreButtonHtml(filtered.length) : '<div class="empty">Nenhum filme encontrado.</div>';
+
+  bindCardEvents('movie', openMovie);
+  bindLoadMore(renderMovies);
+}
+
+function renderSeries(){
+  const filtered = filterItems(state.series);
+  const items = filtered.slice(0, state.limit);
+
+  $("content").innerHTML = items.length ? items.map(x => `
+    <article class="card" tabindex="0" data-id="${escapeHtml(x.series_id)}" data-type="series">
+      <div class="thumb">${cardImage(x.cover,"📚")}</div>
+      <div class="card-body">
+        <div class="name">${escapeHtml(x.name)}</div>
+        <div class="meta">📚 Série${x.rating ? " • ★ "+escapeHtml(x.rating) : ""}</div>
+      </div>
+    </article>`).join("") + loadMoreButtonHtml(filtered.length) : '<div class="empty">Nenhuma série encontrada.</div>';
+
+  bindCardEvents('series', openSeries);
+  bindLoadMore(renderSeries);
+}
+
+function streamUrl(type,id,ext="m3u8"){
+  const base = state.server.replace(/\/+$/,"");
+  return `${base}/${type}/${encodeURIComponent(state.username)}/${encodeURIComponent(state.password)}/${encodeURIComponent(id)}.${ext}`;
+}
+
+function openPlayer(title,url,info=""){
+  $("playerTitle").textContent = title;
+  $("playerInfo").textContent = info;
+  $("player").classList.remove("hidden");
+
+  const video = $("video");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+
+  if(video.canPlayType("application/vnd.apple.mpegurl")){
+    video.src = url;
+    video.play().catch(()=>{});
+    $("closePlayer").focus();
+    return;
+  }
+
+  if(window.Hls && Hls.isSupported()){
+    if(state.hls){ try{state.hls.destroy()}catch(e){} }
+    state.hls = new Hls({
+      enableWorker:true,
+      lowLatencyMode:false,
+      backBufferLength:30
+    });
+    state.hls.loadSource(url);
+    state.hls.attachMedia(video);
+    state.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
+    state.hls.on(Hls.Events.ERROR, (event,data) => {
+      if(data && data.fatal) toast("Erro no fluxo HLS.");
+    });
+  }else{
+    toast("Este navegador não suporta HLS neste modo.");
+  }
+  $("closePlayer").focus();
+}
+
+function playLive(id){
+  const item = state.live.find(x => String(x.stream_id) === String(id));
+  if(!item) return;
+  openPlayer(item.name, streamUrl("live",id,"m3u8"), "TV ao vivo");
+}
+
+async function openMovie(id){
+  try{
+    const data = await api({action:"get_vod_info",vod_id:id});
+    const info = data.info || {};
+    const movie = data.movie_data || {};
+    const ext = movie.container_extension || "mp4";
+
+    const body = `
+      ${info.movie_image ? `<img src="${escapeHtml(info.movie_image)}" style="width:120px;max-height:170px;object-fit:cover;border-radius:8px;float:left;margin:0 15px 10px 0">` : ""}
+      <h3>${escapeHtml(info.name || movie.name || "Filme")}</h3>
+      <p>${escapeHtml(info.plot || "Sem descrição.")}</p>
+      <p><b>Gênero:</b> ${escapeHtml(info.genre || "-")}<br>
+      <b>Ano:</b> ${escapeHtml(info.releasedate || "-")}<br>
+      <b>Nota:</b> ${escapeHtml(info.rating || "-")}</p>
+      <div style="clear:both"></div>
+      <button class="primary" id="playMovieBtn" tabindex="0">▶ Assistir</button>`;
+    showModal("Detalhes do filme",body);
+    
+    const playBtn = $("playMovieBtn");
+    playBtn.focus();
+    playBtn.onclick = () => {
+      closeModal();
+      openPlayer(movie.name || "Filme", streamUrl("movie",id,ext), "Filme");
+    };
+    playBtn.onkeydown = (e) => {
+      if(e.key === "Enter" || e.keyCode === 13){
+        e.preventDefault();
+        closeModal();
+        openPlayer(movie.name || "Filme", streamUrl("movie",id,ext), "Filme");
+      }
+    };
+  }catch(err){ toast("Não foi possível carregar o filme: "+err.message); }
+}
+
+async function openSeries(id){
+  try{
+    const data = await api({action:"get_series_info",series_id:id});
+    const info = data.info || {};
+    const seasons = Array.isArray(info.seasons) ? info.seasons : [];
+    const episodes = data.episodes || {};
+
+    let html = `<p>${escapeHtml(info.plot || "")}</p>`;
+    if(seasons.length){
+      html += `<div class="series-seasons">${seasons.map((s,i) =>
+        `<button class=
