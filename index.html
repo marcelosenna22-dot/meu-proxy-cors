@@ -388,7 +388,15 @@ function streamUrl(type,id,ext="m3u8"){
   return `${base}/${type}/${encodeURIComponent(state.username)}/${encodeURIComponent(state.password)}/${encodeURIComponent(id)}.${ext}`;
 }
 
-function openPlayer(title,url,info=""){
+function openPlayer(title, url, info = "") {
+  // 1. Verifica se está rodando dentro do aplicativo Android Nativo com Bridge
+  if (window.AndroidBridge && typeof window.AndroidBridge.playNativeVideo === "function") {
+    // Envia a URL do fluxo M3U8/TS diretamente para o ExoPlayer Nativo
+    window.AndroidBridge.playNativeVideo(url, title);
+    return;
+  }
+
+  // 2. Fallback: Se estiver rodando em navegador comum/PC, usa o Player Web (HLS.js)
   $("playerTitle").textContent = title;
   $("playerInfo").textContent = info;
   $("player").classList.remove("hidden");
@@ -398,27 +406,27 @@ function openPlayer(title,url,info=""){
   video.removeAttribute("src");
   video.load();
 
-  if(video.canPlayType("application/vnd.apple.mpegurl")){
+  if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = url;
-    video.play().catch(()=>{});
+    video.play().catch(() => {});
     $("closePlayer").focus();
     return;
   }
 
-  if(window.Hls && Hls.isSupported()){
-    if(state.hls){ try{state.hls.destroy()}catch(e){} }
+  if (window.Hls && Hls.isSupported()) {
+    if (state.hls) { try { state.hls.destroy(); } catch (e) {} }
     state.hls = new Hls({
-      enableWorker:true,
-      lowLatencyMode:false,
-      backBufferLength:30
+      enableWorker: true,
+      lowLatencyMode: false,
+      backBufferLength: 30
     });
     state.hls.loadSource(url);
     state.hls.attachMedia(video);
-    state.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-    state.hls.on(Hls.Events.ERROR, (event,data) => {
-      if(data && data.fatal) toast("Erro no fluxo HLS.");
+    state.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+    state.hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data && data.fatal) toast("Erro no fluxo HLS.");
     });
-  }else{
+  } else {
     toast("Este navegador não suporta HLS neste modo.");
   }
   $("closePlayer").focus();
@@ -474,4 +482,161 @@ async function openSeries(id){
     let html = `<p>${escapeHtml(info.plot || "")}</p>`;
     if(seasons.length){
       html += `<div class="series-seasons">${seasons.map((s,i) =>
-        `<button class=
+        `<button class="season ${i===0?"active":""}" tabindex="0" data-season="${escapeHtml(s.season_number)}">Temporada ${escapeHtml(s.season_number)}</button>`
+      ).join("")}</div>`;
+    }
+    html += `<div id="episodes"></div>`;
+    showModal(info.name || "Série",html);
+
+    const renderSeason = sn => {
+      const list = episodes[String(sn)] || episodes[sn] || [];
+      $("episodes").innerHTML = list.length ? list.map(ep => `
+        <div class="epg-item">
+          <div class="epg-title">${escapeHtml(ep.episode_num || "")} — ${escapeHtml(ep.title || "Episódio")}</div>
+          <div class="epg-desc">${escapeHtml(ep.info?.plot || ep.plot || "")}</div>
+          <button class="season" style="margin-top:8px" tabindex="0" data-ep="${escapeHtml(ep.id)}">▶ Assistir</button>
+        </div>`).join("") : '<div class="empty">Nenhum episódio nesta temporada.</div>';
+
+      document.querySelectorAll("[data-ep]").forEach(b => {
+        const handler = () => {
+          const ep = list.find(e=>String(e.id)===String(b.dataset.ep));
+          if(!ep) return;
+          closeModal();
+          openPlayer(ep.title || "Episódio",
+            streamUrl("series",ep.id,ep.container_extension || "mp4"),
+            "Série");
+        };
+        b.onclick = handler;
+        b.onkeydown = (e) => { if(e.key==="Enter"||e.keyCode===13){ e.preventDefault(); handler(); } };
+      });
+    };
+
+    if(seasons.length) renderSeason(seasons[0].season_number);
+    else{
+      const keys = Object.keys(episodes);
+      renderSeason(keys[0] || 1);
+    }
+
+    document.querySelectorAll("[data-season]").forEach(b => {
+      const handler = () => {
+        document.querySelectorAll("[data-season]").forEach(x=>x.classList.remove("active"));
+        b.classList.add("active");
+        renderSeason(b.dataset.season);
+      };
+      b.onclick = handler;
+      b.onkeydown = (e) => { if(e.key==="Enter"||e.keyCode===13){ e.preventDefault(); handler(); } };
+    });
+
+    $("closeModal").focus();
+  }catch(err){ toast("Não foi possível carregar a série: "+err.message); }
+}
+
+async function showEPG(streamId,channelName){
+  try{
+    const data = await api({action:"get_short_epg",stream_id:streamId,limit:10});
+    const list = data.epg_listings || [];
+    const html = list.length ? list.map(x=>`
+      <div class="epg-item ${String(x.now_playing)==="1"?"now":""}">
+        <div class="epg-time">${escapeHtml(x.start || "")} → ${escapeHtml(x.end || "")}</div>
+        <div class="epg-title">${escapeHtml(x.title || "Programa")}</div>
+        <div class="epg-desc">${escapeHtml(x.description || "")}</div>
+      </div>`).join("") : '<div class="empty">Não há programação disponível.</div>';
+    showModal("EPG — "+channelName,html);
+    $("closeModal").focus();
+  }catch(err){ toast("Erro ao carregar EPG: "+err.message); }
+}
+
+function showModal(title,body){
+  $("modalTitle").textContent=title;
+  $("modalBody").innerHTML=body;
+  $("modal").classList.remove("hidden");
+}
+function closeModal(){ $("modal").classList.add("hidden"); }
+
+function closePlayer(){
+  const v=$("video");
+  v.pause();
+  v.removeAttribute("src");
+  v.load();
+  if(state.hls){ try{state.hls.destroy()}catch(e){} state.hls=null; }
+  $("player").classList.add("hidden");
+}
+
+function logout(){
+  closePlayer();
+  state.server=state.username=state.password="";
+  state.live=[]; state.movies=[]; state.series=[];
+  state.liveCategories=[]; state.movieCategories=[]; state.seriesCategories=[];
+  $("appScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+  $("username").value="";
+  $("password").value="";
+}
+
+$("loginBtn").onclick=login;
+$("password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+$("logoutBtn").onclick=logout;
+$("closePlayer").onclick=closePlayer;
+$("closeModal").onclick=closeModal;
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
+
+document.querySelectorAll(".nav button").forEach(b=>{
+  b.onclick=()=>loadPage(b.dataset.page);
+  b.onkeydown=(e)=>{if(e.key==="Enter"||e.keyCode===13){e.preventDefault();loadPage(b.dataset.page);}};
+});
+
+let searchTimer = null;
+$("search").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.limit = 60;
+    if(state.page==="live") renderLive();
+    if(state.page==="movies") renderMovies();
+    if(state.page==="series") renderSeries();
+  }, 300);
+});
+
+$("category").addEventListener("change", () => {
+  state.limit = 60;
+  if(state.page==="live") renderLive();
+  if(state.page==="movies") renderMovies();
+  if(state.page==="series") renderSeries();
+});
+
+$("refreshBtn").onclick=()=> {
+  if(state.page==="live") state.live = [];
+  if(state.page==="movies") state.movies = [];
+  if(state.page==="series") state.series = [];
+  loadPage(state.page);
+};
+
+// Mapeamento Global do Controle Remoto (Tecla Voltar / Back / Escape)
+document.addEventListener("keydown", e => {
+  const code = e.keyCode || e.which;
+  if (e.key === "Escape" || e.key === "Back" || code === 27 || code === 8 || code === 10009 || code === 461) {
+    if (!$("player").classList.contains("hidden")) {
+      e.preventDefault();
+      closePlayer();
+      return;
+    }
+    if (!$("modal").classList.contains("hidden")) {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+  }
+});
+
+// Menu de Contexto para EPG
+document.addEventListener("contextmenu",e=>{
+  const card=e.target.closest('.card[data-type="live"]');
+  if(!card) return;
+  e.preventDefault();
+  const item=state.live.find(x=>String(x.stream_id)===String(card.dataset.id));
+  if(item) showEPG(item.stream_id,item.name);
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script>
+</body>
+</html>
